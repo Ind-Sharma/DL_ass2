@@ -182,8 +182,13 @@ class OxfordIIITPetDataset(Dataset):
         bbox = self._load_bbox(stem, w0, h0)
         trimap = self._load_trimap(stem)
 
-        # ``list.txt`` class ids are 1..37 in the official release.
-        label = torch.tensor(cls_id - 1, dtype=torch.long)
+        # Official ``list.txt`` uses breed ids **1..37**; some mirrors use **0..36**.
+        if cls_id >= 1:
+            label_idx = cls_id - 1
+        else:
+            label_idx = cls_id
+        label_idx = max(0, min(36, int(label_idx)))
+        label = torch.tensor(label_idx, dtype=torch.long)
         out: Tuple = (image, label, bbox, trimap)
         if self.return_paths:
             out = out + (str(img_path),)
