@@ -17,6 +17,10 @@ __pycache__/
 # Data (Oxford-IIIT Pet at repo root)
 images/
 annotations/
+*.zip
+*.tar
+*.tar.gz
+*.tgz
 
 # Logs / W&B
 wandb/
