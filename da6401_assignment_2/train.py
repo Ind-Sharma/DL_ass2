@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import os
+from pathlib import Path
 from typing import Literal
 
 import numpy as np
@@ -27,6 +28,26 @@ from models.segmentation import VGG11UNet
 
 def _device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def _resolve_data_root(data_root: str) -> str:
+    """Kaggle-friendly data root normalization."""
+    root = Path(data_root)
+    s = str(root).lower()
+    if "kaggle" not in s:
+        return str(root)
+
+    candidates = [root, root / "new_data"]
+    if root.name == "input" and root.is_dir():
+        candidates.extend([d for d in root.iterdir() if d.is_dir()])
+
+    for c in candidates:
+        if (c / "annotations").is_dir() and (c / "images").is_dir():
+            print(f"Kaggle mode: using data_root={c}", flush=True)
+            return str(c)
+
+    print(f"Kaggle mode: using provided data_root={root}", flush=True)
+    return str(root)
 
 
 def _macro_f1_cls(
@@ -141,8 +162,9 @@ def main() -> None:
     args = p.parse_args()
 
     device = _device()
-    print(f"task={args.task}  device={device}  data_root={args.data_root}", flush=True)
-    full = OxfordIIITPetDataset(root=args.data_root, split="trainval")
+    data_root = _resolve_data_root(args.data_root)
+    print(f"task={args.task}  device={device}  data_root={data_root}", flush=True)
+    full = OxfordIIITPetDataset(root=data_root, split="trainval")
     n_val = max(1, int(len(full) * args.val_fraction))
     n_train = len(full) - n_val
     train_set, val_set = random_split(

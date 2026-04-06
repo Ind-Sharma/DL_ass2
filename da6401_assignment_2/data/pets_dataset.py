@@ -38,35 +38,44 @@ def _read_list_file(list_path: Path) -> List[Tuple[str, int, int, int]]:
 
 
 def _resolve_ann_root(root: Path) -> Path:
-    """Support both ``root/annotations/`` and nested ``root/annotations/annotations/`` (some archives)."""
-    a = root / "annotations"
-    if (a / "list.txt").is_file():
-        return a
-    nested = a / "annotations"
-    if (nested / "list.txt").is_file():
-        return nested
+    """Resolve annotations root across deeply nested archive layouts."""
+    base = root / "annotations"
+    cur = base
+    for _ in range(6):
+        if (cur / "list.txt").is_file():
+            return cur
+        nxt = cur / "annotations"
+        if not nxt.is_dir():
+            break
+        cur = nxt
+
+    if base.is_dir():
+        for list_path in base.rglob("list.txt"):
+            return list_path.parent
+
     raise FileNotFoundError(
-        f"Could not find list.txt under {a} or {nested}. "
-        "Expected Oxford-IIIT Pet layout with annotations/list.txt."
+        f"Could not find list.txt under {base} (including nested annotations folders)."
     )
 
 
 def _resolve_img_root(root: Path) -> Path:
-    """Prefer ``root/images/images`` when it contains ``.jpg`` files, else ``root/images``."""
-    d = root / "images"
-    nested = d / "images"
-    if nested.is_dir():
-        if any(nested.glob("*.jpg")):
-            return nested
-    if d.is_dir() and any(d.glob("*.jpg")):
-        return d
-    if nested.is_dir():
-        return nested
-    if d.is_dir():
-        return d
+    """Resolve image root across deeply nested archive layouts."""
+    base = root / "images"
+    cur = base
+    for _ in range(6):
+        if cur.is_dir() and any(cur.glob("*.jpg")):
+            return cur
+        nxt = cur / "images"
+        if not nxt.is_dir():
+            break
+        cur = nxt
+
+    if base.is_dir():
+        for jpg in base.rglob("*.jpg"):
+            return jpg.parent
+
     raise FileNotFoundError(
-        f"Could not find images under {d} or {nested}. "
-        "Expected Oxford-IIIT Pet images as .jpg files."
+        f"Could not find .jpg files under {base} (including nested images folders)."
     )
 
 

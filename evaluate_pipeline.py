@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import os
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -24,6 +25,26 @@ from models.multitask import MultiTaskPerceptionModel
 
 def _device() -> torch.device:
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def _resolve_data_root(data_root: str) -> str:
+    """Kaggle-friendly data root normalization."""
+    root = Path(data_root)
+    s = str(root).lower()
+    if "kaggle" not in s:
+        return str(root)
+
+    candidates = [root, root / "new_data"]
+    if root.name == "input" and root.is_dir():
+        candidates.extend([d for d in root.iterdir() if d.is_dir()])
+
+    for c in candidates:
+        if (c / "annotations").is_dir() and (c / "images").is_dir():
+            print(f"Kaggle mode: using data_root={c}", flush=True)
+            return str(c)
+
+    print(f"Kaggle mode: using provided data_root={root}", flush=True)
+    return str(root)
 
 
 def _box_iou_cxcywh(pred: torch.Tensor, target: torch.Tensor, eps: float = 1e-6) -> torch.Tensor:
@@ -97,7 +118,8 @@ def main() -> None:
     device = _device()
     torch.manual_seed(args.seed)
 
-    full = OxfordIIITPetDataset(root=args.data_root, split="trainval")
+    data_root = _resolve_data_root(args.data_root)
+    full = OxfordIIITPetDataset(root=data_root, split="trainval")
     n_val = max(1, int(len(full) * args.val_fraction))
     n_train = len(full) - n_val
     _, val_set = random_split(
