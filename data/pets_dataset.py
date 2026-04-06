@@ -52,6 +52,9 @@ def _resolve_ann_root(root: Path) -> Path:
     if base.is_dir():
         for list_path in base.rglob("list.txt"):
             return list_path.parent
+    if root.is_dir():
+        for list_path in root.rglob("list.txt"):
+            return list_path.parent
 
     raise FileNotFoundError(
         f"Could not find list.txt under {base} (including nested annotations folders)."
@@ -72,6 +75,9 @@ def _resolve_img_root(root: Path) -> Path:
 
     if base.is_dir():
         for jpg in base.rglob("*.jpg"):
+            return jpg.parent
+    if root.is_dir():
+        for jpg in root.rglob("*.jpg"):
             return jpg.parent
 
     raise FileNotFoundError(
