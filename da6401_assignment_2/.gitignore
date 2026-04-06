@@ -1,0 +1,21 @@
+# Virtual env
+.venv/
+venv/
+
+# Weights (host on Drive per course; optional local copies)
+*.pth
+*.pt
+*.ckpt
+
+# Python
+__pycache__/
+*.py[cod]
+.Python
+
+# W&B
+wandb/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.venv/
+venv/
+.env
+
+# Checkpoints / weights (use Drive + gdown per course; keep out of Git)
+*.pth
+*.pt
+*.ckpt
+
+# Data (Oxford-IIIT Pet at repo root)
+images/
+annotations/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs / W&B
+wandb/
