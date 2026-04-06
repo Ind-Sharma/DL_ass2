@@ -43,6 +43,17 @@ class MultiTaskPerceptionModel(nn.Module):
             dropout_p: Dropout probability (shared with sub-model definitions).
             localizer_hidden: Hidden dim for the localization MLP (must match training).
         """
+        # Gradescope: download weights before building modules (avoids stale/partial files).
+        import gdown
+
+        for path, file_id in (
+            (classifier_path, "1DhWJjRW15qBmdcNxAI2-xsMkAP84jQV8"),
+            (localizer_path, "14wFEgDXByLkNBXJBrgVZtgffa7urRWFB"),
+            (unet_path, "1ZqD5HSLu3rPvoGlVhqQjxNm3rvMG72QB"),
+        ):
+            if not os.path.isfile(path):
+                gdown.download(id=file_id, output=path, quiet=False)
+
         super().__init__()
         self.encoder = VGG11Encoder(in_channels=in_channels, dropout_p=dropout_p)
 
@@ -63,22 +74,12 @@ class MultiTaskPerceptionModel(nn.Module):
 
         self.seg_decoder = UNetDecoder(num_classes=seg_classes, dropout_p=dropout_p)
 
-        # Google Drive checkpoints (Gradescope). Skip download if file already exists locally.
-        import gdown
-
-        for path, file_id in (
-            (classifier_path, "1DhWJjRW15qBmdcNxAI2-xsMkAP84jQV8"),
-            (localizer_path, "14wFEgDXByLkNBXJBrgVZtgffa7urRWFB"),
-            (unet_path, "1ZqD5HSLu3rPvoGlVhqQjxNm3rvMG72QB"),
-        ):
-            if not os.path.isfile(path):
-                gdown.download(id=file_id, output=path, quiet=False)
-
         self._load_pretrained(
             classifier_path=classifier_path,
             localizer_path=localizer_path,
             unet_path=unet_path,
         )
+        self.eval()
 
     def _load_pretrained(self, classifier_path: str, localizer_path: str, unet_path: str) -> None:
         """Load weights from independently trained single-task checkpoints."""
