@@ -63,8 +63,17 @@ class MultiTaskPerceptionModel(nn.Module):
 
         self.seg_decoder = UNetDecoder(num_classes=seg_classes, dropout_p=dropout_p)
 
-        # Optional: before submission, paste ``gdown.download(...)`` lines from the course README
-        # (requires ``gdown``) to fetch checkpoints from Google Drive.
+        # Google Drive checkpoints (Gradescope). Skip download if file already exists locally.
+        import gdown
+
+        for path, file_id in (
+            (classifier_path, "1DhWJjRW15qBmdcNxAI2-xsMkAP84jQV8"),
+            (localizer_path, "14wFEgDXByLkNBXJBrgVZtgffa7urRWFB"),
+            (unet_path, "1ZqD5HSLu3rPvoGlVhqQjxNm3rvMG72QB"),
+        ):
+            if not os.path.isfile(path):
+                gdown.download(id=file_id, output=path, quiet=False)
+
         self._load_pretrained(
             classifier_path=classifier_path,
             localizer_path=localizer_path,
@@ -94,6 +103,14 @@ class MultiTaskPerceptionModel(nn.Module):
             state = torch.load(unet_path, map_location="cpu")
             unet.load_state_dict(state, strict=True)
             self.seg_decoder.load_state_dict(unet.decoder.state_dict())
+
+        for label, path in (
+            ("classifier", classifier_path),
+            ("localizer", localizer_path),
+            ("unet", unet_path),
+        ):
+            status = f"loaded {path}" if os.path.isfile(path) else f"MISSING {path} (head stays randomly initialized)"
+            print(f"[MultiTaskPerceptionModel] checkpoint {label}: {status}", flush=True)
 
     def _forward_cls(self, flat: torch.Tensor) -> torch.Tensor:
         x = self.fc1(flat)
