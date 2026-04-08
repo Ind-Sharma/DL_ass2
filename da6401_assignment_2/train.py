@@ -84,7 +84,7 @@ def train_one_epoch(
     ce_loss: nn.Module,
     iou_loss: IoULoss,
     mse_loss: nn.Module,
-    log_every: int = 1,
+    log_every: int = 0,
 ) -> float:
     model.train()
     total = 0.0
@@ -138,8 +138,8 @@ def main() -> None:
     p.add_argument(
         "--log_every",
         type=int,
-        default=1,
-        help="Print every N batches (1 = every batch). Set 0 to print only epoch summary.",
+        default=0,
+        help="Print every N batches (0 = only epoch summary; 1 = every batch).",
     )
     p.add_argument(
         "--weighted_ce",
