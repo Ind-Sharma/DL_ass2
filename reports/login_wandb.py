@@ -8,6 +8,10 @@ from getpass import getpass
 
 import wandb
 
+# Optional: paste your key here (kept empty by default).
+# Example: USER_API_KEY = "wandb_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+USER_API_KEY = ""
+
 
 def main() -> None:
     p = argparse.ArgumentParser()
@@ -15,9 +19,15 @@ def main() -> None:
     p.add_argument("--entity", type=str, default="")
     p.add_argument("--name", type=str, default="wandb-login-check")
     p.add_argument("--api_key_env", type=str, default="WANDB_API_KEY")
+    p.add_argument(
+        "--api_key",
+        type=str,
+        default="",
+        help="Optional direct API key. If set, it overrides file/env/prompt.",
+    )
     args = p.parse_args()
 
-    api_key = os.environ.get(args.api_key_env, "").strip()
+    api_key = args.api_key.strip() or USER_API_KEY.strip() or os.environ.get(args.api_key_env, "").strip()
     if api_key:
         wandb.login(key=api_key)
     else:
