@@ -122,6 +122,16 @@ def _activation_histogram_3rd_conv(model: VGG11Classifier, x1: torch.Tensor) -> 
     return a
 
 
+def _subsample_1d(a: np.ndarray, max_n: int = 50_000, rng: np.random.Generator | None = None) -> np.ndarray:
+    """Subsample for W&B tables / plot.histogram (full conv maps can be huge)."""
+    a = np.asarray(a).ravel()
+    if len(a) <= max_n:
+        return a
+    g = rng or np.random.default_rng(0)
+    idx = g.choice(len(a), size=max_n, replace=False)
+    return a[idx]
+
+
 def _lr_sweep_max_stable(
     make_model: callable,
     device: torch.device,
@@ -264,9 +274,22 @@ def _run_experiment(
 
     # Activation histogram at end of training
     act = _activation_histogram_3rd_conv(model, x1)
+    act_vis = _subsample_1d(act, max_n=50_000, rng=np.random.default_rng(seed))
+    hist_table = wandb.Table(
+        data=[[float(x)] for x in act_vis],
+        columns=["activation"],
+    )
+    hist_chart = wandb.plot.histogram(
+        hist_table,
+        "activation",
+        title="Conv3 activations (same fixed input; subsampled for chart)",
+    )
     wandb.log(
         {
+            # Native Histogram — sometimes hard to find in newer W&B UI; kept for compatibility.
             "activations/conv3_hist": wandb.Histogram(act),
+            # Custom chart (Vega) — shows up as a normal panel under this metric key.
+            "activations/conv3_hist_chart": hist_chart,
             "activations/conv3_mean": float(act.mean()),
             "activations/conv3_std": float(act.std()),
         }
@@ -390,4 +413,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
