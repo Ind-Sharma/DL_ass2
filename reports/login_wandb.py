@@ -10,7 +10,7 @@ import wandb
 
 # Optional: paste your key here (kept empty by default).
 # Example: USER_API_KEY = "wandb_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-USER_API_KEY = ""
+USER_API_KEY = "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"
 
 
 def main() -> None:
