@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+from getpass import getpass
 
 import wandb
 
@@ -20,8 +21,20 @@ def main() -> None:
     if api_key:
         wandb.login(key=api_key)
     else:
-        # Falls back to normal interactive login prompt if env key is not set.
-        wandb.login()
+        # Prompt in terminal (hidden input) to avoid hardcoding keys in code.
+        entered = getpass("Enter W&B API key (input hidden): ").strip().strip('"').strip("'")
+        if entered:
+            if len(entered) < 40:
+                print(
+                    f"Provided key looks too short ({len(entered)} chars). "
+                    "Falling back to interactive W&B login instead."
+                )
+                wandb.login()
+            else:
+                wandb.login(key=entered)
+        else:
+            # Falls back to normal interactive login prompt if user presses enter.
+            wandb.login()
 
     run = wandb.init(
         project=args.project,
