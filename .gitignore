@@ -28,6 +28,9 @@ wandb/
 # Local W&B report scripts (not required in remote repo)
 reports/
 
+# Local pipeline eval script (optional; keep on machine only)
+evaluate_pipeline.py
+
 # OS / IDE
 .DS_Store
 .idea/
