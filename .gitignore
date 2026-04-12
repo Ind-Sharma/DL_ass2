@@ -25,6 +25,9 @@ annotations/
 # Logs / W&B
 wandb/
 
+# Local W&B report scripts (not required in remote repo)
+reports/
+
 # OS / IDE
 .DS_Store
 .idea/
